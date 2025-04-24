@@ -1,5 +1,5 @@
 # Wikipedia Laravel Package
-
+📦
 A powerful, developer-friendly Laravel package for accessing Wikipedia’s vast knowledge graph. This package bridges the gap between your Laravel application and structured/unstructured content on Wikipedia. Whether you're building educational tools, integrating intelligent search, or enriching content with real-time knowledge, this package gives you full programmatic access to article text, infoboxes, images, and metadata—across multiple languages.
 
 No more dealing with raw API calls! With this package, you can use a fluent interface, full Laravel Facade support, and smart query enhancements to get exactly the data you want.

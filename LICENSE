@@ -1,0 +1,28 @@
+Custom License for Denason/Wikipedia
+
+Copyright (c) 2025 Denason | Mohammad Asadi
+
+Permission is hereby granted to any individual or organization to use, copy, and modify
+this software for **non-commercial purposes** only, under the following conditions:
+
+1. This software **may not be used** as part of commercial products, platforms,
+   or services without the express written permission of the author.
+
+2. This software **may not be included in any other open-source or closed-source packages**
+   without:
+   - Explicit written permission from the author, AND
+   - Proper attribution to the original package (denason/wikipedia) in all distributed files,
+     documentation, and/or user interfaces.
+
+3. Redistributions of modified or unmodified copies of this software must include
+   this license and attribution to the original author.
+
+4. Use of this software signifies acceptance of these terms.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
+
+To request commercial licensing or inclusion permission, please contact:
+[Mohammad.Wartan@gmail.com || Mohammad.asadi.sisakht@gmail.com]

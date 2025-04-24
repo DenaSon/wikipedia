@@ -1,0 +1,41 @@
+{
+    "name": "denason/wikipedia",
+    "description": "A Laravel package to get data and manage information from Wikipedia Directly",
+    "authors": [
+        {
+            "name": "Mohammad Asadi Sisakht",
+            "email": "mohammad.asadi.sisakht@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/denason/wikipedia/issues",
+        "source": "https://github.com/denason/wikipedia"
+    },
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Denason\\Wikipedia\\": "src/"
+        },
+        "files": [
+            "src/Helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Denason\\Wikipedia\\WikipediaServiceProvider"
+            ],
+            "aliases": {
+                "Wikipedia": "Denason\\Wikipedia\\Facades\\Wikipedia"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.0",
+        "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0"
+    }
+}

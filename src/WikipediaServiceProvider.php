@@ -34,7 +34,6 @@ class WikipediaServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
         }
 
-        // Load commands (در صورت نیاز)
-        // $this->commands([ ... ]);
+
     }
 }

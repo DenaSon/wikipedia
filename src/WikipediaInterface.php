@@ -2,8 +2,19 @@
 
 namespace Denason\Wikipedia;
 
+use Denason\Wikipedia\Exceptions\WikipediaException;
+
 interface WikipediaInterface
 {
+    /**
+     * Retrieves information about a Wikipedia page.
+     *
+     * @param string $title The title of the Wikipedia page.
+     * @param string $prop The properties to retrieve (e.g., extracts, revisions).
+     * @param string $format The response format (default: json).
+     * @param array $extra Additional query parameters.
+     * @return mixed The retrieved data.
+     */
     public function getInfo(string $title,string $prop,string $format,array $extra = []): mixed;
 
     /**
@@ -105,6 +116,11 @@ interface WikipediaInterface
      */
     public function raw(string $title): array;
 
+    /**
+     * @param string $title
+     * @return array|null
+     * @throws WikipediaException
+     */
     public function infoBox(string $title): ?array;
 
 

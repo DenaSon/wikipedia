@@ -2,7 +2,9 @@
 
 namespace Denason\Wikipedia\Services;
 
+use Denason\Wikipedia\Exceptions\WikipediaException;
 use Denason\Wikipedia\WikipediaInterface;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 final class WikipediaManager implements WikipediaInterface
@@ -10,6 +12,10 @@ final class WikipediaManager implements WikipediaInterface
     protected string $lang = 'en';
     protected bool $useFallback = false;
 
+    /**
+     * @throws WikipediaException
+     * @throws ConnectionException
+     */
     public function getInfo(string $title, string $prop = 'extracts', string $format = 'json', array $extra = []): mixed
     {
 
@@ -22,17 +28,24 @@ final class WikipediaManager implements WikipediaInterface
 
         $response = Http::timeout(5)->get($this->getApiUrl(), $params);
 
+        if ($response->failed()) {
+            throw new WikipediaException("Wikipedia API request failed: " . $response->body(), $response->status());
+        }
+
         $data = $response->successful()
             ? ($response->json()['query']['pages'] ?? [])
             : [];
 
 
-        if ($this->useFallback && $this->isEmptyResult($data)) {
+        if ($this->useFallback && $this->isEmptyResult($data, $prop)) {
             $suggestions = $this->suggest($title);
             if (!empty($suggestions)) {
 
                 $params['titles'] = $suggestions[0];
                 $response = Http::timeout(5)->get($this->getApiUrl(), $params);
+                if ($response->failed()) {
+                    throw new WikipediaException("Fallback request to Wikipedia failed: " . $response->body(), $response->status());
+                }
                 return $response->successful()
                     ? ($response->json()['query']['pages'] ?? [])
                     : [];
@@ -90,10 +103,10 @@ final class WikipediaManager implements WikipediaInterface
     {
 
         if (!extension_loaded('dom')) {
-            throw new \RuntimeException('The ext-dom extension is required to use certain features of this feature. Please install it and try again.');
+            throw new WikipediaException('The ext-dom extension is required to use certain features of this feature. Please install it and try again.');
         }
         if (!extension_loaded('libxml')) {
-            throw new \RuntimeException('The ext-libxml extension is required to use certain features of this feature. Please install it and try again.');
+            throw new WikipediaException('The ext-libxml extension is required to use certain features of this feature. Please install it and try again.');
         }
 
 
@@ -129,9 +142,11 @@ final class WikipediaManager implements WikipediaInterface
     }
 
 
-
     public function lang(string $lang): self
     {
+        if (!preg_match('/^[a-zA-Z]{2}$/', $lang)) {
+            throw new \InvalidArgumentException("Invalid language code: {$lang}");
+        }
         $this->lang = $lang;
         return $this;
     }
@@ -150,6 +165,11 @@ final class WikipediaManager implements WikipediaInterface
             'format' => 'json',
             'srsearch' => $query,
         ]);
+
+        if ($response->failed()) {
+            throw new WikipediaException("Wikipedia API request failed: " . $response->body(), $response->status());
+        }
+
 
         $results = $response->successful() ? $response->json()['query']['search'] ?? [] : [];
 
@@ -176,11 +196,15 @@ final class WikipediaManager implements WikipediaInterface
             'format' => 'json',
             'search' => $query,
         ]);
+        if ($response->failed()) {
+            throw new WikipediaException("Wikipedia API request failed: " . $response->body(), $response->status());
+        }
+
 
         return $response->successful() ? ($response->json()[1] ?? []) : [];
     }
 
-    public function summary(string $title, array $extra = ['explaintext'=>false]): ?string
+    public function summary(string $title, array $extra = ['explaintext' => false]): ?string
     {
         return $this->extract($title, 'extracts', array_replace([
             'exintro' => true,
@@ -265,6 +289,10 @@ final class WikipediaManager implements WikipediaInterface
             $params['page'] = $params['titles'] ?? $params['page'] ?? '';
             unset($params['titles'], $params['prop']);
             $response = Http::timeout(5)->get($this->getApiUrl(), $params);
+            if ($response->failed()) {
+                throw new WikipediaException("Wikipedia API request failed: " . $response->body(), $response->status());
+            }
+
             return $response->json();
         }
 
@@ -272,29 +300,16 @@ final class WikipediaManager implements WikipediaInterface
     }
 
 
-    public function html(string $title, int $depth = 2): string
-    {
-        $response = $this->extract($title, 'text', ['action' => 'parse']);
-        $html = $response['parse']['text']['*'] ?? '';
-
-        if ($depth > 0 && str_contains(strtolower($html), 'redirectmsg')) {
-            $redirectTarget = $this->getRedirectTarget($title);
-            if ($redirectTarget) {
-                return $this->html($redirectTarget, $depth - 1);
-            }
-        }
-
-        return $html;
-    }
-
-
     protected function extractPageField(array $params, string $field, int $depth = 0): mixed
     {
         if ($depth > 1) {
-            return 'null';
+            return null;
         }
 
         $response = Http::timeout(5)->get($this->getApiUrl(), $params);
+        if ($response->failed()) {
+            throw new WikipediaException("Wikipedia API request failed: " . $response->body(), $response->status());
+        }
 
         $pages = $response->json()['query']['pages'] ?? [];
         $page = current($pages);
@@ -324,6 +339,22 @@ final class WikipediaManager implements WikipediaInterface
             default => 'extract', // fallback
         };
     }
+
+    public function html(string $title, int $depth = 2): string
+    {
+        $response = $this->extract($title, 'text', ['action' => 'parse']);
+        $html = $response['parse']['text']['*'] ?? '';
+
+        if ($depth > 0 && str_contains(strtolower($html), 'redirectmsg')) {
+            $redirectTarget = $this->getRedirectTarget($title);
+            if ($redirectTarget) {
+                return $this->html($redirectTarget, $depth - 1);
+            }
+        }
+
+        return $html;
+    }
+
 
     protected function getRedirectTarget(string $title): ?string
     {

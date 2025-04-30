@@ -3,6 +3,7 @@
 namespace Denason\Wikipedia\Services;
 
 use Denason\Wikipedia\WikipediaInterface;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 final class WikipediaManager implements WikipediaInterface
@@ -10,6 +11,9 @@ final class WikipediaManager implements WikipediaInterface
     protected string $lang = 'en';
     protected bool $useFallback = false;
 
+    /**
+     * {@inheritdoc}
+     */
     public function getInfo(string $title, string $prop = 'extracts', string $format = 'json', array $extra = []): mixed
     {
 
@@ -41,7 +45,6 @@ final class WikipediaManager implements WikipediaInterface
 
         return $data;
     }
-
 
     protected function isEmptyResult(array $data, string $prop = ''): bool
     {
@@ -84,7 +87,9 @@ final class WikipediaManager implements WikipediaInterface
         return true;
     }
 
-
+    /**
+     * {@inheritdoc}
+     */
 
     public function infobox(string $title): array
     {
@@ -129,18 +134,29 @@ final class WikipediaManager implements WikipediaInterface
     }
 
 
-
+    /**
+     * {@inheritdoc}
+     */
     public function lang(string $lang): self
     {
         $this->lang = $lang;
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     * {@inheritdoc}
+     */
     public function smart(): self
     {
         $this->useFallback = true;
         return $this;
     }
+
+    /**
+     * {@inheritdoc}
+     * @throws ConnectionException
+     */
 
     public function search(string $query): array
     {
@@ -169,6 +185,9 @@ final class WikipediaManager implements WikipediaInterface
         })->toArray();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function suggest(string $query): array
     {
         $response = Http::timeout(5)->get("https://{$this->lang}.wikipedia.org/w/api.php", [
@@ -180,7 +199,10 @@ final class WikipediaManager implements WikipediaInterface
         return $response->successful() ? ($response->json()[1] ?? []) : [];
     }
 
-    public function summary(string $title, array $extra = ['explaintext'=>false]): ?string
+    /**
+     * {@inheritdoc}
+     */
+    public function summary(string $title, array $extra = ['explaintext' => false]): ?string
     {
         return $this->extract($title, 'extracts', array_replace([
             'exintro' => true,
@@ -188,7 +210,9 @@ final class WikipediaManager implements WikipediaInterface
         ], $extra));
     }
 
-
+    /**
+     * {@inheritdoc}
+     */
     public function text(string $title): ?string
     {
         return $this->extract($title, 'extracts', [
@@ -196,6 +220,9 @@ final class WikipediaManager implements WikipediaInterface
         ]);
     }
 
+    /**
+     * {@inheritdoc}
+     */
 
     public function categories(string $title, int $depth = 2): array
     {
@@ -213,7 +240,9 @@ final class WikipediaManager implements WikipediaInterface
         return is_array($result) ? $result : [];
     }
 
-
+    /**
+     * {@inheritdoc}
+     */
     public function imageUrl(string $title): ?string
     {
         $thumb = $this->extract($title, 'pageimages', [
@@ -223,12 +252,17 @@ final class WikipediaManager implements WikipediaInterface
         return is_array($thumb) ? $thumb['source'] ?? null : null;
     }
 
-
+    /**
+     * {@inheritdoc}
+     */
     public function url(string $title): string
     {
         return "https://{$this->lang}.wikipedia.org/wiki/" . urlencode($title);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function raw(string $title, int $depth = 2): array
     {
         $result = $this->extract($title, 'revisions', ['rvprop' => 'content']);
@@ -251,6 +285,9 @@ final class WikipediaManager implements WikipediaInterface
         return "https://{$this->lang}.wikipedia.org/w/api.php";
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function extract(string $title, string $prop, array $extra = []): mixed
     {
         $params = array_replace([
@@ -261,7 +298,6 @@ final class WikipediaManager implements WikipediaInterface
         ], $extra);
 
         if (($params['action'] ?? '') === 'parse') {
-            // فقط از 'page' استفاده کن نه 'titles' و نه 'prop'
             $params['page'] = $params['titles'] ?? $params['page'] ?? '';
             unset($params['titles'], $params['prop']);
             $response = Http::timeout(5)->get($this->getApiUrl(), $params);
@@ -271,7 +307,9 @@ final class WikipediaManager implements WikipediaInterface
         return $this->extractPageField($params, $this->defaultFieldFor($prop));
     }
 
-
+    /**
+     * {@inheritdoc}
+     */
     public function html(string $title, int $depth = 2): string
     {
         $response = $this->extract($title, 'text', ['action' => 'parse']);
@@ -336,6 +374,9 @@ final class WikipediaManager implements WikipediaInterface
         return null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function description(string $term): ?string
     {
         $info = $this->getInfo($term, 'description');

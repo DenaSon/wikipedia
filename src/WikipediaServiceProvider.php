@@ -14,7 +14,7 @@ class WikipediaServiceProvider extends ServiceProvider
         });
 
 
-        $this->mergeConfigFrom(__DIR__ . '/Config/wikipedia.php', 'wikipedia');
+        //$this->mergeConfigFrom(__DIR__ . '/Config/wikipedia.php', 'wikipedia');
     }
 
     public function boot(): void
@@ -30,11 +30,5 @@ class WikipediaServiceProvider extends ServiceProvider
         }
 
 
-        if (file_exists(__DIR__ . '/Routes/web.php')) {
-            $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
-        }
-
-        // Load commands (در صورت نیاز)
-        // $this->commands([ ... ]);
     }
 }
